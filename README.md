@@ -1,59 +1,166 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Filmmaker Reference Platform - Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Backend часть проекта на Laravel 12 с PostgreSQL.
 
-## About Laravel
+## 📋 Требования
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 8.4+
+- Composer
+- PostgreSQL 12+
+- Node.js и npm (для фронтенда)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🚀 Установка и запуск
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 1. Клонирование репозитория
 
-## Learning Laravel
+```bash
+git clone <repository-url>
+cd project_x_backend
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### 2. Установка зависимостей
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+composer install
+```
 
-## Laravel Sponsors
+### 3. Настройка окружения
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Скопируйте файл `.env.example` в `.env`:
 
-### Premium Partners
+```bash
+cp .env.example .env
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Отредактируйте `.env` файл и настройте подключение к базе данных:
 
-## Contributing
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=project_x
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 4. Генерация ключа приложения
 
-## Code of Conduct
+```bash
+php artisan key:generate
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 5. Создание базы данных
 
-## Security Vulnerabilities
+Создайте базу данных PostgreSQL:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+# Войдите в PostgreSQL
+psql -U postgres
 
-## License
+# Создайте базу данных
+CREATE DATABASE project_x;
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 6. Запуск миграций
+
+```bash
+php artisan migrate
+```
+
+### 7. Заполнение базы данных тестовыми данными (опционально)
+
+```bash
+php artisan db:seed
+```
+
+Это создаст:
+- Категории (на английском языке)
+- Теги
+- 30 тестовых видео-референсов
+
+### 8. Запуск сервера разработки
+
+```bash
+php artisan serve
+```
+
+Сервер будет доступен по адресу: `http://localhost:8000`
+
+API endpoints будут доступны по адресу: `http://localhost:8000/api`
+
+## 📡 API Endpoints
+
+### Video References
+
+- `GET /api/video-references` - Список всех видео-референсов
+- `GET /api/video-references/{id}` - Получить видео-референс по ID
+- `POST /api/video-references` - Создать новый видео-референс
+- `PUT /api/video-references/{id}` - Обновить видео-референс
+- `DELETE /api/video-references/{id}` - Удалить видео-референс
+
+### Categories
+
+- `GET /api/categories` - Список всех категорий
+- `GET /api/categories/{id}` - Получить категорию по ID
+- `POST /api/categories` - Создать новую категорию
+- `PUT /api/categories/{id}` - Обновить категорию
+- `DELETE /api/categories/{id}` - Удалить категорию
+
+### Tags
+
+- `GET /api/tags` - Список всех тегов
+- `GET /api/tags/{id}` - Получить тег по ID
+- `POST /api/tags` - Создать новый тег
+- `PUT /api/tags/{id}` - Обновить тег
+- `DELETE /api/tags/{id}` - Удалить тег
+
+## 🔍 Поиск
+
+API поддерживает full-text search через PostgreSQL (tsvector/tsquery).
+
+Пример запроса с поиском:
+```
+GET /api/video-references?search=cinematic&category_id=1&platform=youtube
+```
+
+## 🗄️ Структура базы данных
+
+- `categories` - Категории (с поддержкой подкатегорий через adjacency list)
+- `video_references` - Видео-референсы
+- `tags` - Теги
+- `video_reference_tag` - Связь many-to-many между видео и тегами
+- `tutorials` - Tutorials для видео-референсов
+
+## 🧪 Тестирование
+
+```bash
+php artisan test
+```
+
+## 📝 Полезные команды
+
+```bash
+# Очистить кэш
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+
+# Откатить миграции
+php artisan migrate:rollback
+
+# Откатить все миграции и применить заново
+php artisan migrate:fresh
+
+# Откатить все миграции, применить заново и заполнить данными
+php artisan migrate:fresh --seed
+```
+
+## 🔧 Конфигурация
+
+Основные настройки находятся в файле `.env`. Убедитесь, что PostgreSQL настроен для поддержки full-text search (tsvector/tsquery).
+
+## 📚 Документация
+
+Подробная техническая документация находится в папке `documentation/`:
+- `business-requirements.md` - Бизнес-требования
+- `technical-implementation-plan.md` - Технический план реализации
