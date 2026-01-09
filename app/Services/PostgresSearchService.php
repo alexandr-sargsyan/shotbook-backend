@@ -60,9 +60,13 @@ class PostgresSearchService
             $query->where('source_url', $filters['source_url']);
         }
 
-        // Фильтр по категории
+        // Фильтр по категории (поддержка массива категорий)
         if (!empty($filters['category_id'])) {
-            $query->where('category_id', $filters['category_id']);
+            if (is_array($filters['category_id'])) {
+                $query->whereIn('category_id', $filters['category_id']);
+            } else {
+                $query->where('category_id', $filters['category_id']);
+            }
         }
 
         // Фильтр по platform

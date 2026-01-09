@@ -35,6 +35,16 @@ class CategoryController extends Controller
             'order' => ['nullable', 'integer'],
         ]);
 
+        // Валидация: подкатегория не может иметь свои подкатегории (максимум 1 уровень вложенности)
+        if ($validated['parent_id']) {
+            $parentCategory = Category::find($validated['parent_id']);
+            if ($parentCategory && $parentCategory->parent_id) {
+                return response()->json([
+                    'message' => 'Cannot create subcategory for a subcategory. Maximum nesting level is 1.',
+                ], 422);
+            }
+        }
+
         $category = Category::create($validated);
 
         return response()->json([
@@ -68,6 +78,23 @@ class CategoryController extends Controller
             'parent_id' => ['nullable', 'exists:categories,id'],
             'order' => ['nullable', 'integer'],
         ]);
+
+        // Валидация: подкатегория не может иметь свои подкатегории (максимум 1 уровень вложенности)
+        if (isset($validated['parent_id']) && $validated['parent_id']) {
+            $parentCategory = Category::find($validated['parent_id']);
+            if ($parentCategory && $parentCategory->parent_id) {
+                return response()->json([
+                    'message' => 'Cannot create subcategory for a subcategory. Maximum nesting level is 1.',
+                ], 422);
+            }
+        }
+
+        // Валидация: нельзя сделать категорию подкатегорией, если у неё уже есть подкатегории
+        if (isset($validated['parent_id']) && $validated['parent_id'] && $category->children()->exists()) {
+            return response()->json([
+                'message' => 'Cannot convert category with children to subcategory.',
+            ], 422);
+        }
 
         $category->update($validated);
 
