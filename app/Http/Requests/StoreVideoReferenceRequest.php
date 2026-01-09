@@ -51,8 +51,8 @@ class StoreVideoReferenceRequest extends FormRequest
             'search_profile' => ['required', 'string'],
             'search_metadata' => ['nullable', 'string'],
 
-            // Tags (массив имен тегов)
-            'tags' => ['required', 'array', 'min:1'],
+            // Tags (массив имен тегов, необязательное поле)
+            'tags' => ['nullable', 'array'],
             'tags.*' => ['required', 'string', 'max:255'],
 
             // Tutorials
