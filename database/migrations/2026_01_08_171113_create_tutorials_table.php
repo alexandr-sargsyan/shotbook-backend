@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('tutorials', function (Blueprint $table) {
             $table->id();
             $table->foreignId('video_reference_id')->constrained('video_references')->onDelete('cascade');
-            $table->string('tutorial_url')->nullable();
+            $table->string('tutorial_url', 2048)->nullable();
             $table->string('label')->nullable();
             $table->integer('start_sec')->nullable();
             $table->integer('end_sec')->nullable();
