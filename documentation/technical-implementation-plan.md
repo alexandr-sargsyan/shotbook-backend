@@ -79,6 +79,7 @@ php artisan make:migration create_categories_table
 **Filter Fields:**
 - `category_id` (bigint, foreign key → categories.id)
 - `platform` (string, nullable) — определяется автоматически по URL (instagram, tiktok, youtube)
+- `platform_video_id` (string, nullable) — ID видео на платформе после нормализации URL
 - `pacing` (string, nullable) — темп видео (slow, fast, mixed)
 - `hook_type` (string, nullable) — тип "хука"
 - `production_level` (string, nullable) — уровень продакшена (low, mid, high)
@@ -103,9 +104,14 @@ php artisan make:migration create_categories_table
 - Создать computed column или trigger для генерации `tsvector` из полей: `title`, `search_profile`, `search_metadata`
 - Создать GIN индекс на `tsvector` колонку для быстрого поиска
 
+**Дополнительная миграция:**
+После создания основной таблицы нужно добавить поле `platform_video_id`:
+- `platform_video_id` (string, nullable) — ID видео на платформе после нормализации URL
+
 **Действия:**
 ```bash
 php artisan make:migration create_video_references_table
+php artisan make:migration add_platform_video_id_to_video_references_table
 ```
 
 **После создания миграции добавить:**
@@ -310,7 +316,10 @@ php artisan make:request UpdateVideoReferenceRequest
 
 **Правила валидации:**
 - `search` — nullable, string (поисковый запрос)
-- `category_id` — nullable, exists:categories,id
+- `id` — nullable, integer (точный поиск по ID)
+- `source_url` — nullable, string (точный поиск по URL)
+- `category_id` — nullable, integer или array (поддержка множественного выбора)
+- `category_id.*` — integer, exists:categories,id (если массив)
 - `platform` — nullable, string
 - `pacing` — nullable, string
 - `hook_type` — nullable, string
@@ -321,6 +330,8 @@ php artisan make:request UpdateVideoReferenceRequest
 - `has_typography` — nullable, boolean
 - `has_sound_design` — nullable, boolean
 - `has_tutorial` — nullable, boolean
+- `tag_ids` — nullable, array (фильтрация по тегам, логика OR)
+- `tag_ids.*` — integer, exists:tags,id
 - `sort_by` — nullable, string
 - `page` — nullable, integer, min:1
 - `per_page` — nullable, integer, min:1, max:100
@@ -352,6 +363,10 @@ php artisan make:request FilterVideoReferenceRequest
 - Комбинирует full-text search с обычными WHERE условиями для фильтров
 - Сортировка по `quality_score DESC, created_at DESC`
 
+**Фильтрация по тегам:**
+- Поддерживается фильтрация по массиву `tag_ids` (логика OR - хотя бы один из выбранных тегов)
+- Используется `whereHas('tags')` с `whereIn('tags.id', $tagIds)`
+
 **Пример SQL запроса:**
 ```sql
 SELECT * FROM video_references
@@ -363,6 +378,11 @@ WHERE to_tsvector('russian',
 AND category_id = :category_id
 AND platform = :platform
 AND has_visual_effects = :has_visual_effects
+AND EXISTS (
+    SELECT 1 FROM video_reference_tag 
+    WHERE video_reference_id = video_references.id 
+    AND tag_id IN (:tag_ids)
+)
 ORDER BY quality_score DESC, created_at DESC
 ```
 

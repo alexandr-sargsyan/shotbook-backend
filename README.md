@@ -109,24 +109,53 @@ API endpoints будут доступны по адресу: `http://localhost:8
 ### Tags
 
 - `GET /api/tags` - Список всех тегов
+  - Параметр `search` - поиск тегов по имени (case-insensitive)
+  - Пример: `GET /api/tags?search=cinematic`
 - `GET /api/tags/{id}` - Получить тег по ID
 - `POST /api/tags` - Создать новый тег
 - `PUT /api/tags/{id}` - Обновить тег
 - `DELETE /api/tags/{id}` - Удалить тег
 
-## 🔍 Поиск
+## 🔍 Поиск и фильтрация
 
-API поддерживает full-text search через PostgreSQL (tsvector/tsquery).
+API поддерживает full-text search через PostgreSQL (tsvector/tsquery) и расширенную фильтрацию.
 
-Пример запроса с поиском:
+**Примеры запросов:**
+
+Поиск с фильтрами:
 ```
 GET /api/video-references?search=cinematic&category_id=1&platform=youtube
 ```
+
+Фильтрация по тегам (логика OR - хотя бы один из выбранных тегов):
+```
+GET /api/video-references?tag_ids[]=1&tag_ids[]=2
+```
+
+Множественный выбор категорий:
+```
+GET /api/video-references?category_id[]=1&category_id[]=2
+```
+
+**Поддерживаемые фильтры:**
+- `search` - full-text search по title, search_profile, search_metadata
+- `category_id` - фильтр по категории (integer или array)
+- `platform` - фильтр по платформе (youtube, tiktok, instagram)
+- `pacing` - фильтр по темпу (slow, fast, mixed)
+- `production_level` - фильтр по уровню продакшена (low, mid, high)
+- `tag_ids` - фильтр по тегам (array, логика OR)
+- `has_visual_effects`, `has_3d`, `has_animations`, `has_typography`, `has_sound_design` - boolean фильтры
+- `has_tutorial` - фильтр по наличию обучающих материалов
+- `sort_by` - сортировка (quality_score, created_at, relevance)
+- `page` - номер страницы
+- `per_page` - количество элементов на странице (max 100)
 
 ## 🗄️ Структура базы данных
 
 - `categories` - Категории (с поддержкой подкатегорий через adjacency list)
 - `video_references` - Видео-референсы
+  - Поле `platform_video_id` - ID видео на платформе после нормализации URL
+  - Computed column `search_vector` (tsvector) - для full-text search
 - `tags` - Теги
 - `video_reference_tag` - Связь many-to-many между видео и тегами
 - `tutorials` - Tutorials для видео-референсов
@@ -164,3 +193,4 @@ php artisan migrate:fresh --seed
 Подробная техническая документация находится в папке `documentation/`:
 - `business-requirements.md` - Бизнес-требования
 - `technical-implementation-plan.md` - Технический план реализации
+- `video-player-architecture.md` - Архитектура видео-плееров
