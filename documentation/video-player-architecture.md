@@ -132,6 +132,16 @@ rootMargin: '50px',
 threshold: 0.1
 ```
 
+**Стилизация VideoCard:**
+- **Aspect Ratio:** 9:16 (вертикальное видео, как в TikTok)
+  - `padding-top: 177.78%` - для поддержания пропорций
+- **Тайтл:**
+  - `font-size: 13px` (12px на мобильных)
+  - `font-weight: 300` (тонкий текст)
+  - `font-style: italic` (курсив)
+  - Фиксированная высота блока: 40px (36px на мобильных)
+  - Обрезка длинных тайтлов: `text-overflow: ellipsis`, `white-space: nowrap`
+
 ---
 
 ### VideoDetailView (детальная страница)
