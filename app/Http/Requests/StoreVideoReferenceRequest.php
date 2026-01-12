@@ -58,6 +58,11 @@ class StoreVideoReferenceRequest extends FormRequest
             // Tutorials
             'tutorials' => ['nullable', 'array'],
             'tutorials.*' => ['required', 'array'],
+            // Mode: 'new' или 'select'
+            'tutorials.*.mode' => ['required', 'string', Rule::in(['new', 'select'])],
+            // Для mode='select': tutorial_id обязателен
+            'tutorials.*.tutorial_id' => ['nullable', 'integer', 'exists:tutorials,id'],
+            // Для mode='new': tutorial_url и label обязательны
             'tutorials.*.tutorial_url' => ['nullable', 'url', 'max:2048'],
             'tutorials.*.label' => ['nullable', 'string', 'max:255'],
             'tutorials.*.start_sec' => ['nullable', 'integer', 'min:0'],
@@ -66,7 +71,7 @@ class StoreVideoReferenceRequest extends FormRequest
     }
 
     /**
-     * Валидация tutorials: хотя бы одно из полей должно быть заполнено
+     * Валидация tutorials: либо tutorial_id, либо tutorial_url/label должны быть заполнены
      */
     public function withValidator($validator): void
     {
@@ -89,22 +94,38 @@ class StoreVideoReferenceRequest extends FormRequest
                     continue;
                 }
 
+                $mode = $tutorial['mode'] ?? 'new';
+                $hasTutorialId = !empty($tutorial['tutorial_id'] ?? null);
                 $hasUrl = !empty($tutorial['tutorial_url'] ?? null);
-                $hasSegment = !empty($tutorial['label'] ?? null) 
-                    && isset($tutorial['start_sec']) 
-                    && isset($tutorial['end_sec'])
-                    && $tutorial['start_sec'] !== null
-                    && $tutorial['end_sec'] !== null;
+                $hasLabel = !empty($tutorial['label'] ?? null);
 
-                if (!$hasUrl && !$hasSegment) {
-                    $validator->errors()->add(
-                        "tutorials.{$index}",
-                        'At least one field must be filled: tutorial_url OR (label + start_sec + end_sec)'
-                    );
+                if ($mode === 'select') {
+                    // В режиме select tutorial_id обязателен
+                    if (!$hasTutorialId) {
+                        $validator->errors()->add(
+                            "tutorials.{$index}.tutorial_id",
+                            'Tutorial ID is required when mode is "select"'
+                        );
+                    }
+                } else {
+                    // В режиме new tutorial_url и label обязательны
+                    if (!$hasUrl) {
+                        $validator->errors()->add(
+                            "tutorials.{$index}.tutorial_url",
+                            'Tutorial URL is required when mode is "new"'
+                        );
+                    }
+                    if (!$hasLabel) {
+                        $validator->errors()->add(
+                            "tutorials.{$index}.label",
+                            'Label is required when mode is "new"'
+                        );
+                    }
                 }
 
                 // Дополнительная валидация: если указан end_sec, он должен быть больше start_sec
-                if ($hasSegment && isset($tutorial['start_sec']) && isset($tutorial['end_sec'])) {
+                if (isset($tutorial['start_sec']) && isset($tutorial['end_sec']) 
+                    && $tutorial['start_sec'] !== null && $tutorial['end_sec'] !== null) {
                     if ((int)$tutorial['end_sec'] <= (int)$tutorial['start_sec']) {
                         $validator->errors()->add(
                             "tutorials.{$index}.end_sec",

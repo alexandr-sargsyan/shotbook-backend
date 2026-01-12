@@ -75,11 +75,13 @@ class VideoReference extends Model
     }
 
     /**
-     * Получить tutorials
+     * Получить tutorials (связь многие-ко-многим)
      */
-    public function tutorials(): HasMany
+    public function tutorials(): BelongsToMany
     {
-        return $this->hasMany(Tutorial::class);
+        return $this->belongsToMany(Tutorial::class, 'tutorial_video_reference')
+            ->withPivot('start_sec', 'end_sec')
+            ->withTimestamps();
     }
 
     /**

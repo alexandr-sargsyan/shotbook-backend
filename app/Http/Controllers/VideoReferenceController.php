@@ -7,6 +7,7 @@ use App\Http\Requests\FilterVideoReferenceRequest;
 use App\Http\Requests\StoreVideoReferenceRequest;
 use App\Http\Requests\UpdateVideoReferenceRequest;
 use App\Models\Tag;
+use App\Models\Tutorial;
 use App\Models\VideoReference;
 use App\Services\PlatformNormalizationService;
 use App\Services\PostgresSearchService;
@@ -108,15 +109,55 @@ class VideoReferenceController extends Controller
             $videoReference->tags()->sync($tagIds);
         }
 
-        // Создаём tutorials
-        if (!empty($validated['tutorials'])) {
+        // Обрабатываем tutorials: создаём новые или выбираем существующие
+        if (!empty($validated['tutorials']) && is_array($validated['tutorials'])) {
+            $tutorialSyncData = [];
+            
             foreach ($validated['tutorials'] as $tutorialData) {
-                $videoReference->tutorials()->create($tutorialData);
+                $mode = $tutorialData['mode'] ?? 'new';
+                $tutorialId = null;
+                $pivotData = [];
+                
+                if ($mode === 'select') {
+                    // Выбираем существующий tutorial
+                    $tutorialId = $tutorialData['tutorial_id'];
+                } else {
+                    // Создаём новый tutorial
+                    $tutorial = Tutorial::create([
+                        'tutorial_url' => $tutorialData['tutorial_url'],
+                        'label' => $tutorialData['label'],
+                    ]);
+                    $tutorialId = $tutorial->id;
+                }
+                
+                // Добавляем pivot данные (start_sec, end_sec) если они переданы
+                if (isset($tutorialData['start_sec'])) {
+                    $pivotData['start_sec'] = $tutorialData['start_sec'];
+                }
+                if (isset($tutorialData['end_sec'])) {
+                    $pivotData['end_sec'] = $tutorialData['end_sec'];
+                }
+                
+                $tutorialSyncData[$tutorialId] = $pivotData;
+            }
+            
+            // Синхронизируем tutorials с pivot данными
+            if (!empty($tutorialSyncData)) {
+                $videoReference->tutorials()->sync($tutorialSyncData);
             }
         }
 
         // Загружаем связи для ответа
         $videoReference->load(['category', 'tags', 'tutorials']);
+        
+        // Преобразуем tutorials, добавляя pivot данные на верхний уровень
+        $videoReference->tutorials->transform(function ($tutorial) {
+            if ($tutorial->pivot) {
+                $tutorial->start_sec = $tutorial->pivot->start_sec;
+                $tutorial->end_sec = $tutorial->pivot->end_sec;
+            }
+            return $tutorial;
+        });
 
         return response()->json([
             'data' => $videoReference,
@@ -130,6 +171,15 @@ class VideoReferenceController extends Controller
     {
         $videoReference = VideoReference::with(['category', 'tags', 'tutorials'])
             ->findOrFail($id);
+        
+        // Преобразуем tutorials, добавляя pivot данные на верхний уровень
+        $videoReference->tutorials->transform(function ($tutorial) {
+            if ($tutorial->pivot) {
+                $tutorial->start_sec = $tutorial->pivot->start_sec;
+                $tutorial->end_sec = $tutorial->pivot->end_sec;
+            }
+            return $tutorial;
+        });
 
         return response()->json([
             'data' => $videoReference,
@@ -198,19 +248,56 @@ class VideoReferenceController extends Controller
             $videoReference->tags()->sync($tagIds);
         }
 
-        // Обновляем tutorials если переданы
-        if (isset($validated['tutorials'])) {
-            // Удаляем старые tutorials
-            $videoReference->tutorials()->delete();
-
-            // Создаём новые
-            foreach ($validated['tutorials'] as $tutorialData) {
-                $videoReference->tutorials()->create($tutorialData);
+        // Обрабатываем tutorials: всегда синхронизируем, даже если пустой массив
+        // Если tutorials переданы в запросе (включая пустой массив), синхронизируем
+        if (array_key_exists('tutorials', $validated)) {
+            $tutorialSyncData = [];
+            
+            if (is_array($validated['tutorials']) && !empty($validated['tutorials'])) {
+                foreach ($validated['tutorials'] as $tutorialData) {
+                    $mode = $tutorialData['mode'] ?? 'new';
+                    $tutorialId = null;
+                    $pivotData = [];
+                    
+                    if ($mode === 'select') {
+                        // Выбираем существующий tutorial
+                        $tutorialId = $tutorialData['tutorial_id'];
+                    } else {
+                        // Создаём новый tutorial
+                        $tutorial = Tutorial::create([
+                            'tutorial_url' => $tutorialData['tutorial_url'],
+                            'label' => $tutorialData['label'],
+                        ]);
+                        $tutorialId = $tutorial->id;
+                    }
+                    
+                    // Добавляем pivot данные (start_sec, end_sec) если они переданы
+                    if (isset($tutorialData['start_sec'])) {
+                        $pivotData['start_sec'] = $tutorialData['start_sec'];
+                    }
+                    if (isset($tutorialData['end_sec'])) {
+                        $pivotData['end_sec'] = $tutorialData['end_sec'];
+                    }
+                    
+                    $tutorialSyncData[$tutorialId] = $pivotData;
+                }
             }
+            
+            // Синхронизируем tutorials (если пустой массив - удалит все связи)
+            $videoReference->tutorials()->sync($tutorialSyncData);
         }
 
         // Загружаем связи для ответа
         $videoReference->load(['category', 'tags', 'tutorials']);
+        
+        // Преобразуем tutorials, добавляя pivot данные на верхний уровень
+        $videoReference->tutorials->transform(function ($tutorial) {
+            if ($tutorial->pivot) {
+                $tutorial->start_sec = $tutorial->pivot->start_sec;
+                $tutorial->end_sec = $tutorial->pivot->end_sec;
+            }
+            return $tutorial;
+        });
 
         return response()->json([
             'data' => $videoReference,

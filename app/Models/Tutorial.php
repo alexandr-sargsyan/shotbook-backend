@@ -3,32 +3,23 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Tutorial extends Model
 {
     protected $fillable = [
-        'video_reference_id',
         'tutorial_url',
         'label',
-        'start_sec',
-        'end_sec',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'start_sec' => 'integer',
-            'end_sec' => 'integer',
-        ];
-    }
-
     /**
-     * Получить видео-референс
+     * Получить видео-референсы, связанные с этим tutorial
      */
-    public function videoReference(): BelongsTo
+    public function videoReferences(): BelongsToMany
     {
-        return $this->belongsTo(VideoReference::class);
+        return $this->belongsToMany(VideoReference::class, 'tutorial_video_reference')
+            ->withPivot('start_sec', 'end_sec')
+            ->withTimestamps();
     }
 
     /**
@@ -40,10 +31,10 @@ class Tutorial extends Model
 
         static::saving(function (Tutorial $tutorial) {
             $hasUrl = !empty($tutorial->tutorial_url);
-            $hasSegment = !empty($tutorial->label) && !empty($tutorial->start_sec) && !empty($tutorial->end_sec);
+            $hasLabel = !empty($tutorial->label);
 
-            if (!$hasUrl && !$hasSegment) {
-                throw new \InvalidArgumentException('Хотя бы одно из полей должно быть заполнено: tutorial_url ИЛИ (label + start_sec + end_sec)');
+            if (!$hasUrl && !$hasLabel) {
+                throw new \InvalidArgumentException('Хотя бы одно из полей должно быть заполнено: tutorial_url ИЛИ label');
             }
         });
     }
