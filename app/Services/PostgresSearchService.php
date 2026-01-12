@@ -69,9 +69,13 @@ class PostgresSearchService
             }
         }
 
-        // Фильтр по platform
+        // Фильтр по platform (поддерживает массив для множественного выбора)
         if (!empty($filters['platform'])) {
-            $query->where('platform', $filters['platform']);
+            if (is_array($filters['platform'])) {
+                $query->whereIn('platform', $filters['platform']);
+            } else {
+                $query->where('platform', $filters['platform']);
+            }
         }
 
         // Фильтр по pacing
