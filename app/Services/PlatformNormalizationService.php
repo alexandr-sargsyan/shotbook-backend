@@ -28,6 +28,7 @@ class PlatformNormalizationService
             'youtube' => $this->extractYouTubeId($url),
             'tiktok' => $this->extractTikTokId($url),
             'instagram' => $this->extractInstagramId($url),
+            'facebook' => $this->extractFacebookId($url),
             default => null,
         };
 
@@ -55,6 +56,10 @@ class PlatformNormalizationService
 
         if (preg_match('/instagram\.com/', $url)) {
             return 'instagram';
+        }
+
+        if (preg_match('/facebook\.com/', $url)) {
+            return 'facebook';
         }
 
         return null;
@@ -126,6 +131,70 @@ class PlatformNormalizationService
         }
 
         return null;
+    }
+
+    /**
+     * Извлекает video ID для Facebook
+     * Поддерживает форматы:
+     * - /reel/{ID}
+     * - /watch/?v={ID}
+     * - /{user}/videos/{ID}/
+     * - /{user}/posts/{ID} (может содержать видео)
+     */
+    private function extractFacebookId(string $url): ?string
+    {
+        // Нормализуем URL - убираем параметры запроса
+        $normalizedUrl = $this->normalizeFacebookUrl($url);
+        
+        // Формат: /reel/{ID}
+        if (preg_match('/facebook\.com\/reel\/([a-zA-Z0-9_-]+)/', $normalizedUrl, $matches)) {
+            return $matches[1];
+        }
+
+        // Формат: /watch/?v={ID}
+        if (preg_match('/facebook\.com\/watch\/\?v=(\d+)/', $normalizedUrl, $matches)) {
+            return $matches[1];
+        }
+
+        // Формат: /{user}/videos/{ID}/
+        if (preg_match('/facebook\.com\/([^\/]+)\/videos\/(\d+)/', $normalizedUrl, $matches)) {
+            return $matches[2]; // Возвращаем video ID
+        }
+
+        // Формат: /{user}/posts/{ID} (может содержать видео)
+        if (preg_match('/facebook\.com\/([^\/]+)\/posts\/(\d+)/', $normalizedUrl, $matches)) {
+            return $matches[2];
+        }
+
+        return null;
+    }
+
+    /**
+     * Нормализует Facebook URL, убирая параметры запроса
+     * Facebook embed лучше работает с чистыми URL без параметров
+     */
+    private function normalizeFacebookUrl(string $url): string
+    {
+        try {
+            $urlObj = parse_url($url);
+            $scheme = $urlObj['scheme'] ?? 'https';
+            $host = $urlObj['host'] ?? '';
+            $path = $urlObj['path'] ?? '';
+            
+            // Для /watch/?v= сохраняем параметр v
+            if (strpos($path, '/watch') !== false && isset($urlObj['query'])) {
+                parse_str($urlObj['query'], $params);
+                if (isset($params['v'])) {
+                    return "{$scheme}://{$host}/watch/?v={$params['v']}";
+                }
+            }
+            
+            // Для остальных - только путь без параметров
+            return "{$scheme}://{$host}{$path}";
+        } catch (\Exception $e) {
+            // Если не удалось нормализовать, возвращаем исходный URL
+            return $url;
+        }
     }
 
     /**

@@ -7,6 +7,7 @@ enum PlatformEnum: string
     case INSTAGRAM = 'instagram';
     case TIKTOK = 'tiktok';
     case YOUTUBE = 'youtube';
+    case FACEBOOK = 'facebook';
 
     /**
      * Получить все значения enum'а
@@ -33,6 +34,10 @@ enum PlatformEnum: string
 
         if (str_contains($url, 'youtube.com') || str_contains($url, 'youtu.be')) {
             return self::YOUTUBE;
+        }
+
+        if (str_contains($url, 'facebook.com')) {
+            return self::FACEBOOK;
         }
 
         return null;
