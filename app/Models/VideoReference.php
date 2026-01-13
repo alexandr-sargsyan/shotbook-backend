@@ -85,6 +85,40 @@ class VideoReference extends Model
     }
 
     /**
+     * Получить лайки
+     */
+    public function likes(): HasMany
+    {
+        return $this->hasMany(VideoReferenceLike::class);
+    }
+
+    /**
+     * Получить пользователей, которые лайкнули это видео
+     */
+    public function likedByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'video_reference_likes')
+            ->withTimestamps();
+    }
+
+    /**
+     * Получить коллекции, в которых находится это видео
+     */
+    public function collections(): BelongsToMany
+    {
+        return $this->belongsToMany(VideoCollection::class, 'video_collection_items')
+            ->withTimestamps();
+    }
+
+    /**
+     * Получить количество лайков
+     */
+    public function getLikesCountAttribute(): int
+    {
+        return $this->likes()->count();
+    }
+
+    /**
      * Склеить теги в строку для full-text search
      */
     public function getTagsTextAttribute(): string

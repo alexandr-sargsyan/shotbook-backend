@@ -1,34 +1,188 @@
 <!DOCTYPE html>
-<html>
-<body style="background: #000; padding: 40px;">
-
-<h2 style="color:white;">Facebook Reel Test</h2>
-
-<div style="
-  position: relative;
-  width: 360px;
-  margin: 0 auto;
-  padding-bottom: 177.78%; /* 9:16 aspect ratio */
-  overflow: hidden;
-  border-radius: 12px;
-">
-    <iframe
-        src="https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Freel%2F1620088002188771&show_text=0"
-        style="
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-      overflow: hidden;
-    "
-        scrolling="no"
-        frameborder="0"
-        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-        allowfullscreen="true">
-    </iframe>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ivi</title>
+    <link rel="stylesheet" href="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        #video-container {
+            width: 800px;
+            max-width: 100%;
+        }
+        #video-player {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<div id="video-container">
+    <video id="video-player">
+        <source src="https://vast-server.feministnavigate.org/static/video.mp4" type="video/mp4">
+        Ваш браузер не поддерживает воспроизведение видео.
+    </video>
 </div>
 
+<script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Генерируем UUID для serial_id
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        const uuid = generateUUID();
+        const vastUrl = `https://api.ivi.ru/mad/vast/?app_version=32912&serial_id=${uuid}`;
+
+        console.log('VAST URL:', vastUrl);
+
+        // Инициализируем Fluid Player (правильная конфигурация)
+        const player = fluidPlayer('video-player', {
+            layoutControls: {
+                fillToContainer: true,
+                autoPlay: false,
+                mute: false,
+                allowDownload: false,
+                allowTheatre: false,
+                playbackRateEnabled: false
+            },
+            onBeforeXMLHttpRequestOpen: function(request) {
+                request.withCredentials = true;
+            },
+            onBeforeXMLHttpRequest: function(request) {
+                request.withCredentials = true;
+            },
+            vastOptions: {
+                allowVPAID: true,
+                vpaidMode: 'enabled',
+                skipButtonCaption: 'Пропустить',
+                skipButtonClickCaption: 'Пропустить через [seconds] сек',
+                adList: [{
+                    roll: 'preRoll',
+                    vastTag: vastUrl,
+                    adClickable: true,
+                    skipOffset: 5
+                }],
+                vastTimeout: 120000,
+                maxAllowedVastTagRedirects: 3,
+                vastAdvanced: {
+                    vastLoadedCallback: function() {
+                        console.info(JSON.stringify({
+                            'playerEvent': 'vast-loaded'
+                        }));
+                    },
+                    noVastVideoCallback: function() {
+                        console.info(JSON.stringify({
+                            'playerEvent': 'vast-no-video'
+                        }));
+                    },
+                    vastVideoSkippedCallback: function() {
+                        console.info(JSON.stringify({
+                            'playerEvent': 'vast-skipped'
+                        }));
+                    },
+                    vastVideoEndedCallback: function() {
+                        console.info(JSON.stringify({
+                            'playerEvent': 'vast-ended'
+                        }));
+                    }
+                }
+            }
+        });
+
+        console.info(JSON.stringify({
+            'playerEvent': 'player-initialized',
+            'vastTagUrl': vastUrl
+        }));
+
+        // Трекинг прогресса рекламы
+        let currentAd = { duration: 0, lastTime: 0, type: null, started: false };
+        let trackingInterval = null;
+        let quartilesSent = { 25: false, 50: false, 75: false };
+
+        // Событие начала воспроизведения
+        player.on('playing', function(event, info) {
+            if (info && info.mediaSourceType !== 'source') {
+                const el = document.getElementById('video-player');
+
+                if (!currentAd.started || currentAd.type !== info.mediaSourceType) {
+                    currentAd.duration = isFinite(el.duration) ? el.duration : 0;
+                    currentAd.type = info.mediaSourceType;
+                    currentAd.lastTime = 0;
+                    currentAd.started = true;
+                    quartilesSent = { 25: false, 50: false, 75: false };
+
+                    console.info(JSON.stringify({
+                        'playerEvent': 'ad-start',
+                        'adType': info.mediaSourceType,
+                        'duration': currentAd.duration
+                    }));
+
+                    // Запускаем трекинг прогресса
+                    trackingInterval = setInterval(function() {
+                        const currentTime = el.currentTime;
+                        if (currentAd.duration > 0) {
+                            const progress = Math.round((currentTime / currentAd.duration) * 100);
+
+                            console.info(JSON.stringify({
+                                'playerEvent': 'ad-progress',
+                                'progress': progress,
+                                'currentTime': currentTime,
+                                'duration': currentAd.duration
+                            }));
+
+                            // Отслеживаем квартали
+                            if (progress >= 25 && !quartilesSent[25]) {
+                                quartilesSent[25] = true;
+                                console.info(JSON.stringify({
+                                    'playerEvent': 'ad-quartile',
+                                    'quartile': 25
+                                }));
+                            }
+                            if (progress >= 50 && !quartilesSent[50]) {
+                                quartilesSent[50] = true;
+                                console.info(JSON.stringify({
+                                    'playerEvent': 'ad-quartile',
+                                    'quartile': 50
+                                }));
+                            }
+                            if (progress >= 75 && !quartilesSent[75]) {
+                                quartilesSent[75] = true;
+                                console.info(JSON.stringify({
+                                    'playerEvent': 'ad-quartile',
+                                    'quartile': 75
+                                }));
+                            }
+                        }
+                        currentAd.lastTime = currentTime;
+                    }, 100);
+                }
+            }
+        });
+
+        // Событие завершения
+        player.on('ended', function() {
+            if (trackingInterval) {
+                clearInterval(trackingInterval);
+            }
+            console.info(JSON.stringify({
+                'playerEvent': 'ad-complete'
+            }));
+        });
+    });
+</script>
 </body>
 </html>

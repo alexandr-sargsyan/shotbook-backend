@@ -4,13 +4,16 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -44,5 +47,45 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Получить коды подтверждения email
+     */
+    public function emailVerificationCodes(): HasMany
+    {
+        return $this->hasMany(EmailVerificationCode::class, 'email', 'email');
+    }
+
+    /**
+     * Получить лайки пользователя
+     */
+    public function likes(): HasMany
+    {
+        return $this->hasMany(VideoReferenceLike::class);
+    }
+
+    /**
+     * Получить каталоги пользователя
+     */
+    public function collections(): HasMany
+    {
+        return $this->hasMany(VideoCollection::class);
+    }
+
+    /**
+     * Получить дефолтный каталог пользователя
+     */
+    public function defaultCollection(): HasOne
+    {
+        return $this->hasOne(VideoCollection::class)->where('is_default', true);
+    }
+
+    /**
+     * Проверить, подтвержден ли email
+     */
+    public function isEmailVerified(): bool
+    {
+        return $this->email_verified_at !== null;
     }
 }

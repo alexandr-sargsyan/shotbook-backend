@@ -40,8 +40,18 @@ class VideoReferenceController extends Controller
 
         $results = $this->searchService->search($search, $filters, $perPage, $page);
 
+        // Добавляем информацию о лайках
+        $user = auth('api')->user();
+        $items = collect($results->items())->map(function ($videoReference) use ($user) {
+            $videoReference->likes_count = $videoReference->likes()->count();
+            $videoReference->is_liked = $user ? $videoReference->likes()
+                ->where('user_id', $user->id)
+                ->exists() : false;
+            return $videoReference;
+        });
+
         return response()->json([
-            'data' => $results->items(),
+            'data' => $items->values()->all(),
             'meta' => [
                 'current_page' => $results->currentPage(),
                 'last_page' => $results->lastPage(),
@@ -180,6 +190,13 @@ class VideoReferenceController extends Controller
             }
             return $tutorial;
         });
+
+        // Добавляем информацию о лайках
+        $user = auth('api')->user();
+        $videoReference->likes_count = $videoReference->likes()->count();
+        $videoReference->is_liked = $user ? $videoReference->likes()
+            ->where('user_id', $user->id)
+            ->exists() : false;
 
         return response()->json([
             'data' => $videoReference,
