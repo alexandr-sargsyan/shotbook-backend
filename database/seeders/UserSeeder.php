@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -42,11 +43,19 @@ class UserSeeder extends Seeder
             'is_default' => true,
         ]);
 
+        // Добавляем роль администратора
+        $adminRole = Role::where('slug', 'admin')->first();
+        if ($adminRole) {
+            $user->roles()->attach($adminRole->id);
+            $this->command->info('  Роль администратора добавлена');
+        }
+
         $this->command->info('Дефолтный пользователь создан:');
         $this->command->info('  Email: developer@example.com');
         $this->command->info('  Password: developer');
         $this->command->info('  Email подтвержден: Да');
         $this->command->info('  Дефолтный каталог "Избранное" создан');
+        $this->command->info('  Роль: Администратор');
     }
 }
 

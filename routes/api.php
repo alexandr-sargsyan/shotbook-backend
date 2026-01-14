@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminAuthController;
+use App\Http\Controllers\Admin\AdminCategoryController;
+use App\Http\Controllers\Admin\AdminVideoReferenceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\EmailVerificationController;
@@ -32,10 +35,6 @@ Route::middleware('auth:api')->group(function () {
 
     // Защищенные роуты для контента (требуют подтверждения email)
     Route::middleware('email.verified')->group(function () {
-        // CRUD для video-references (только для авторизованных)
-        Route::apiResource('video-references', VideoReferenceController::class)->except(['index', 'show']);
-        Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
-
         // Лайки
         Route::post('/video-references/{id}/like', [LikeController::class, 'toggleLike']);
         Route::get('/video-references/{id}/like', [LikeController::class, 'checkLike']);
@@ -54,4 +53,16 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/collections/{collectionId}/videos/{videoId}', [VideoCollectionItemController::class, 'destroy']);
         Route::get('/video-references/{videoId}/saved', [VideoCollectionItemController::class, 'checkSaved']);
     });
+});
+
+// Админские роуты (требуют аутентификации и роли admin)
+Route::prefix('admin')->middleware(['auth:api', 'admin'])->group(function () {
+    // Информация о текущем админе
+    Route::get('/me', [AdminAuthController::class, 'me']);
+
+    // CRUD для video-references (только для админов)
+    Route::apiResource('video-references', AdminVideoReferenceController::class);
+
+    // CRUD для categories (только для админов)
+    Route::apiResource('categories', AdminCategoryController::class);
 });
