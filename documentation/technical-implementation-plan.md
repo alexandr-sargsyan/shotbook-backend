@@ -700,11 +700,13 @@ project_x-admin-panel/
 - Preview Embed (textarea, optional)
 - Public Summary (textarea, optional)
 - Details Public (textarea, optional) — JSON в виде текста
-- Duration (seconds) (input, optional)
+- Duration (seconds) — не отображается в форме (для будущей автоматизации)
 
 **2. Filter Fields:**
-- Category (select, required) — выпадающий список всех категорий
-- Platform (read-only, определяется автоматически по Source URL)
+- Category (select, required) — простой select, показывает только конечные категории (без подкатегорий)
+  - Если у категории есть подкатегории, она не показывается в списке
+  - Подкатегории отображаются с префиксом "└─" для визуального отличия
+- Platform — определяется автоматически на бэкенде, не отображается в форме
 - Pacing (select: slow/fast/mixed, optional)
 - Hook Type (input, optional)
 - Production Level (select: low/mid/high, optional)
@@ -716,12 +718,18 @@ project_x-admin-panel/
   - Has Sound Design
 
 **3. Search Fields:**
-- Search Profile (textarea, required) — ключевая идея
-- Search Metadata (textarea, optional) — синонимы
+- Search Profile (textarea, required) — ключевая идея видео, структурированное описание
+- Search Metadata (textarea, optional) — синонимы, ключевые слова, альтернативные термины для улучшения поиска
 
 **4. Tags:**
-- Tags (input, text) — строка через запятую (например: "cinematic, vfx, typography")
-- Логика: при сохранении разбить строку по запятым, для каждого тега проверить существование, если нет — создать новый
+- Tags (TagsInput component, required) — массив тегов с автодополнением
+  - Инпут с кнопкой "Add" для добавления тегов
+  - Бейджи выбранных тегов с возможностью удаления (×)
+  - Автодополнение при вводе (live search с debounce 300ms)
+  - Модальное окно для просмотра всех тегов
+  - Валидация: только латинские буквы, без пробелов
+  - Минимум 1 тег при создании
+  - Отправляется как массив строк (вместо строки с запятыми)
 
 **5. Tutorials (опционально):**
 - Список tutorials с возможностью добавления/удаления
