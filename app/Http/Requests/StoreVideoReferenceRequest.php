@@ -29,7 +29,6 @@ class StoreVideoReferenceRequest extends FormRequest
             // Display Fields
             'title' => ['required', 'string', 'max:255'],
             'source_url' => ['required', 'url'],
-            'preview_url' => ['nullable', 'url'],
             'preview_embed' => ['nullable', 'string'],
             'public_summary' => ['nullable', 'string'],
             'details_public' => ['nullable', 'array'],

@@ -70,7 +70,6 @@ php artisan make:migration create_categories_table
 - `id` (bigint, primary key)
 - `title` (string)
 - `source_url` (string) — оригинальная ссылка
-- `preview_url` (string, nullable) — URL превью
 - `preview_embed` (text, nullable) — embed код
 - `public_summary` (text, nullable) — короткое описание
 - `details_public` (json, nullable) — дополнительные детали

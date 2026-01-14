@@ -141,7 +141,6 @@ Filmmaker Reference Platform — это платформа для поиска �
 - `id` (bigint, PK)
 - `title` (string)
 - `source_url` (string)
-- `preview_url` (string, nullable)
 - `preview_embed` (text, nullable)
 - `public_summary` (text, nullable)
 - `details_public` (json, nullable)
@@ -739,7 +738,6 @@ Pivot таблица для связи многие-ко-многим между
 - `category_id` (required, integer, exists:categories,id)
 - `search_profile` (required, string)
 - `search_metadata` (nullable, string)
-- `preview_url` (nullable, url)
 - `preview_embed` (nullable, string)
 - `public_summary` (nullable, string)
 - `details_public` (nullable, json)
@@ -947,7 +945,7 @@ Pivot таблица для связи многие-ко-многим между
 **`VideoCard.jsx`**
 - Карточка видео в списке
 - Lazy loading через Intersection Observer
-- Приоритет: активное видео → preview_url → placeholder
+- Приоритет: активное видео → placeholder
 - Интегрирует `LikeButton` и `SaveToCollectionButton`
 - Обработка `onAuthRequired` для показа модалки регистрации
 

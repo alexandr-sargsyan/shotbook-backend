@@ -29,7 +29,6 @@ class UpdateVideoReferenceRequest extends FormRequest
             // Display Fields
             'title' => ['sometimes', 'string', 'max:255'],
             'source_url' => ['sometimes', 'url'],
-            'preview_url' => ['nullable', 'url'],
             'preview_embed' => ['nullable', 'string'],
             'public_summary' => ['nullable', 'string'],
             'details_public' => ['nullable', 'array'],

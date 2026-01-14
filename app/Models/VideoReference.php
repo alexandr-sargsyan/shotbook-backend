@@ -16,7 +16,6 @@ class VideoReference extends Model
     protected $fillable = [
         'title',
         'source_url',
-        'preview_url',
         'preview_embed',
         'public_summary',
         'details_public',

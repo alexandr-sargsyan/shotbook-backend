@@ -17,7 +17,6 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->string('source_url');
-            $table->string('preview_url')->nullable();
             $table->text('preview_embed')->nullable();
             $table->text('public_summary')->nullable();
             $table->json('details_public')->nullable();

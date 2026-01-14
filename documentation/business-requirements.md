@@ -49,7 +49,7 @@
 - Платформу (platform) с иконкой
 - Категорию (category) в виде бейджа
 - Теги (tags)
-- Превью/плеер (preview_embed / preview_url)
+- Превью/плеер (preview_embed)
 - Длительность (duration_sec)
 - Короткое описание (public_summary)
 - Ссылку на оригинал (source_url — кнопка "Open original")
@@ -107,7 +107,7 @@
 - `platform` — Instagram / TikTok / YouTube / Facebook (с иконкой)
 - `category_id` — категория (бейдж)
 - `tags[]` — список тегов
-- `preview_embed / preview_url` — превью/плеер (muted autoplay на hover)
+- `preview_embed` — превью/плеер (muted autoplay на hover)
 - `duration_sec` — длительность (отображается как 0:17)
 
 **В детальной карточке:**

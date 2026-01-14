@@ -210,8 +210,7 @@ https://www.facebook.com/plugins/video.php?href={ENCODED_URL}&show_text={0|1}&wi
 - Видео загружается только при попадании в viewport (с запасом 50px)
 - Приоритет отображения:
   1. Активное видео (если есть `platform` и `platform_video_id`) - через VideoListPlayer
-  2. Preview изображение (`preview_url`)
-  3. Placeholder с иконкой платформы
+  2. Placeholder с иконкой платформы
 
 **Использование VideoListPlayer:**
 ```jsx
@@ -237,7 +236,7 @@ threshold: 0.1
 **Расположение:** `project_x_frontend/src/components/VideoDetailView/VideoDetailView.jsx`
 
 **Особенности:**
-- Приоритет: активное видео → preview_url → placeholder
+- Приоритет: активное видео → placeholder
 - Всегда загружается (нет lazy loading)
 
 **Использование VideoDetailPlayer:**
@@ -344,10 +343,7 @@ threshold: 0.1
 1. **Если есть `platform` и `platform_video_id`:**
    - Используется VideoListPlayer (в списке) или VideoDetailPlayer (на детальной странице)
 
-2. **Если есть `preview_url`:**
-   - Показывается статичное изображение
-
-3. **Иначе:**
+2. **Иначе:**
    - Показывается placeholder с иконкой платформы
 
 ### Автозапуск и звук
