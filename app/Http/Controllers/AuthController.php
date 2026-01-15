@@ -34,10 +34,10 @@ class AuthController extends Controller
             'email_verified_at' => null, // Email не подтвержден
         ]);
 
-        // Создаем дефолтный каталог "Избранное"
+        // Создаем дефолтный каталог "Favorites"
         VideoCollection::create([
             'user_id' => $user->id,
-            'name' => 'Избранное',
+            'name' => 'Favorites',
             'is_default' => true,
         ]);
 

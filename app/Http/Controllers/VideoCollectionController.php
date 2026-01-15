@@ -74,7 +74,7 @@ class VideoCollectionController extends Controller
         // Проверяем, что это не дефолтный каталог
         if ($collection->is_default) {
             return response()->json([
-                'message' => 'Дефолтный каталог "Избранное" нельзя переименовывать',
+                'message' => 'Default collection "Favorites" cannot be renamed',
             ], 422);
         }
 
@@ -97,7 +97,7 @@ class VideoCollectionController extends Controller
         // Проверяем, что это не дефолтный каталог
         if ($collection->is_default) {
             return response()->json([
-                'message' => 'Дефолтный каталог "Избранное" нельзя удалять',
+                'message' => 'Default collection "Favorites" cannot be deleted',
             ], 422);
         }
 

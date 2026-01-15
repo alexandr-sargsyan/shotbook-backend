@@ -36,10 +36,10 @@ class UserSeeder extends Seeder
             'email_verified_at' => now(), // Email сразу подтвержден для удобства разработки
         ]);
 
-        // Создаем дефолтный каталог "Избранное"
+        // Создаем дефолтный каталог "Favorites"
         \App\Models\VideoCollection::create([
             'user_id' => $user->id,
-            'name' => 'Избранное',
+            'name' => 'Favorites',
             'is_default' => true,
         ]);
 
@@ -54,7 +54,7 @@ class UserSeeder extends Seeder
         $this->command->info('  Email: developer@example.com');
         $this->command->info('  Password: developer');
         $this->command->info('  Email подтвержден: Да');
-        $this->command->info('  Дефолтный каталог "Избранное" создан');
+        $this->command->info('  Default collection "Favorites" created');
         $this->command->info('  Роль: Администратор');
     }
 }
