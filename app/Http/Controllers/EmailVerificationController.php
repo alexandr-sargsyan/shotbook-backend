@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\SendCodeRequest;
 use App\Http\Requests\VerifyCodeRequest;
+use App\Models\User;
 use App\Services\EmailVerificationService;
 use Illuminate\Http\JsonResponse;
 
@@ -51,8 +52,28 @@ class EmailVerificationController extends Controller
             ], 422);
         }
 
+        // Находим пользователя и автоматически авторизуем
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Пользователь не найден',
+            ], 404);
+        }
+
+        // Создаем токен доступа (как при логине)
+        $token = $user->createToken('Personal Access Token')->accessToken;
+
         return response()->json([
             'message' => 'Email успешно подтвержден',
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'email_verified_at' => $user->email_verified_at,
+            ],
         ]);
     }
 }
