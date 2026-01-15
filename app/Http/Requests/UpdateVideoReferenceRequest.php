@@ -35,7 +35,8 @@ class UpdateVideoReferenceRequest extends FormRequest
             'duration_sec' => ['nullable', 'integer', 'min:1'],
 
             // Filter Fields
-            'category_id' => ['sometimes', 'exists:categories,id'],
+            'category_ids' => ['sometimes', 'array', 'min:1'],
+            'category_ids.*' => ['required', 'integer', 'exists:categories,id'],
             'platform' => ['nullable', 'string', Rule::in(PlatformEnum::values())],
             'pacing' => ['nullable', 'string', Rule::in(PacingEnum::values())],
             'hook_type' => ['nullable', 'string'],

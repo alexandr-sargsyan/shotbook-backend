@@ -55,7 +55,7 @@ class VideoCollectionController extends Controller
         $user = $request->user();
 
         $collection = VideoCollection::where('user_id', $user->id)
-            ->with(['videoReferences.category', 'videoReferences.tags'])
+            ->with(['videoReferences.categories', 'videoReferences.tags'])
             ->findOrFail($id);
 
         return response()->json([

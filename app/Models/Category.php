@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Category extends Model
@@ -34,9 +35,9 @@ class Category extends Model
     /**
      * Получить все видео-референсы этой категории
      */
-    public function videoReferences(): HasMany
+    public function videoReferences(): BelongsToMany
     {
-        return $this->hasMany(VideoReference::class);
+        return $this->belongsToMany(VideoReference::class, 'video_reference_category');
     }
 
     /**

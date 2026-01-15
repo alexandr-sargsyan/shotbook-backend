@@ -23,7 +23,6 @@ return new class extends Migration
             $table->integer('duration_sec')->nullable();
 
             // Filter Fields
-            $table->foreignId('category_id')->constrained('categories')->onDelete('restrict');
             $table->string('platform')->nullable();
             $table->string('pacing')->nullable();
             $table->string('hook_type')->nullable();

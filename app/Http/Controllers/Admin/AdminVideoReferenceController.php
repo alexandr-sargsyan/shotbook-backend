@@ -41,7 +41,13 @@ class AdminVideoReferenceController extends Controller
         $results = $this->searchService->search($search, $filters, $perPage, $page);
 
         // Для админа загружаем все связи, включая служебные поля
-        $items = $results->items();
+        $items = collect($results->items())->map(function ($videoReference) {
+            // Загружаем категории если они не загружены
+            if (!$videoReference->relationLoaded('categories')) {
+                $videoReference->load('categories');
+            }
+            return $videoReference;
+        });
 
         return response()->json([
             'data' => $items,
@@ -101,11 +107,22 @@ class AdminVideoReferenceController extends Controller
             }
         }
 
-        // Убираем tags из validated, так как будем привязывать по ID
-        unset($validated['tags']);
+        // Обрабатываем категории: получаем массив category_ids
+        $categoryIds = [];
+        if (!empty($validated['category_ids']) && is_array($validated['category_ids'])) {
+            $categoryIds = array_filter($validated['category_ids'], fn($id) => is_numeric($id));
+        }
+
+        // Убираем tags и category_ids из validated, так как будем привязывать по ID
+        unset($validated['tags'], $validated['category_ids']);
 
         // Создаём видео-референс
         $videoReference = VideoReference::create($validated);
+
+        // Привязываем категории по ID
+        if (!empty($categoryIds)) {
+            $videoReference->categories()->sync($categoryIds);
+        }
 
         // Привязываем теги по ID
         if (!empty($tagIds)) {
@@ -151,7 +168,7 @@ class AdminVideoReferenceController extends Controller
         }
 
         // Загружаем связи для ответа
-        $videoReference->load(['category', 'tags', 'tutorials']);
+        $videoReference->load(['categories', 'tags', 'tutorials']);
         
         // Преобразуем tutorials, добавляя pivot данные на верхний уровень
         $videoReference->tutorials->transform(function ($tutorial) {
@@ -172,7 +189,7 @@ class AdminVideoReferenceController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $videoReference = VideoReference::with(['category', 'tags', 'tutorials'])
+        $videoReference = VideoReference::with(['categories', 'tags', 'tutorials'])
             ->findOrFail($id);
         
         // Преобразуем tutorials, добавляя pivot данные на верхний уровень
@@ -218,6 +235,12 @@ class AdminVideoReferenceController extends Controller
             }
         }
 
+        // Обрабатываем категории: получаем массив category_ids
+        $categoryIds = null;
+        if (isset($validated['category_ids']) && is_array($validated['category_ids'])) {
+            $categoryIds = array_filter($validated['category_ids'], fn($id) => is_numeric($id));
+        }
+
         // Обрабатываем теги: получаем или создаём теги по именам
         $tagIds = null;
         if (isset($validated['tags']) && is_array($validated['tags'])) {
@@ -240,11 +263,16 @@ class AdminVideoReferenceController extends Controller
             }
         }
 
-        // Убираем tags из validated, так как будем привязывать по ID
-        unset($validated['tags']);
+        // Убираем tags и category_ids из validated, так как будем привязывать по ID
+        unset($validated['tags'], $validated['category_ids']);
 
         // Обновляем видео-референс
         $videoReference->update($validated);
+
+        // Обновляем категории если переданы
+        if ($categoryIds !== null) {
+            $videoReference->categories()->sync($categoryIds);
+        }
 
         // Обновляем теги если переданы
         if ($tagIds !== null) {
@@ -291,7 +319,7 @@ class AdminVideoReferenceController extends Controller
         }
 
         // Загружаем связи для ответа
-        $videoReference->load(['category', 'tags', 'tutorials']);
+        $videoReference->load(['categories', 'tags', 'tutorials']);
         
         // Преобразуем tutorials, добавляя pivot данные на верхний уровень
         $videoReference->tutorials->transform(function ($tutorial) {

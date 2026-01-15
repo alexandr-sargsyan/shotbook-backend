@@ -20,7 +20,6 @@ class VideoReference extends Model
         'public_summary',
         'details_public',
         'duration_sec',
-        'category_id',
         'platform',
         'platform_video_id',
         'pacing',
@@ -58,11 +57,11 @@ class VideoReference extends Model
     }
 
     /**
-     * Получить категорию
+     * Получить категории
      */
-    public function category(): BelongsTo
+    public function categories(): BelongsToMany
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsToMany(Category::class, 'video_reference_category');
     }
 
     /**
@@ -182,12 +181,14 @@ class VideoReference extends Model
     }
 
     /**
-     * Scope для фильтрации по категории
+     * Scope для фильтрации по категориям
      */
-    public function scopeFilterByCategory(Builder $query, ?int $categoryId): Builder
+    public function scopeFilterByCategories(Builder $query, ?array $categoryIds): Builder
     {
-        if ($categoryId) {
-            return $query->where('category_id', $categoryId);
+        if (!empty($categoryIds) && is_array($categoryIds)) {
+            return $query->whereHas('categories', function ($q) use ($categoryIds) {
+                $q->whereIn('categories.id', $categoryIds);
+            });
         }
         return $query;
     }

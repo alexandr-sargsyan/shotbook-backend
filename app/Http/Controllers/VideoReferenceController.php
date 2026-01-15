@@ -47,6 +47,10 @@ class VideoReferenceController extends Controller
             $videoReference->is_liked = $user ? $videoReference->likes()
                 ->where('user_id', $user->id)
                 ->exists() : false;
+            // Загружаем категории если они не загружены
+            if (!$videoReference->relationLoaded('categories')) {
+                $videoReference->load('categories');
+            }
             return $videoReference;
         });
 
@@ -108,11 +112,22 @@ class VideoReferenceController extends Controller
             }
         }
 
-        // Убираем tags из validated, так как будем привязывать по ID
-        unset($validated['tags']);
+        // Обрабатываем категории: получаем массив category_ids
+        $categoryIds = [];
+        if (!empty($validated['category_ids']) && is_array($validated['category_ids'])) {
+            $categoryIds = array_filter($validated['category_ids'], fn($id) => is_numeric($id));
+        }
+
+        // Убираем tags и category_ids из validated, так как будем привязывать по ID
+        unset($validated['tags'], $validated['category_ids']);
 
         // Создаём видео-референс
         $videoReference = VideoReference::create($validated);
+
+        // Привязываем категории по ID
+        if (!empty($categoryIds)) {
+            $videoReference->categories()->sync($categoryIds);
+        }
 
         // Привязываем теги по ID
         if (!empty($tagIds)) {
@@ -158,7 +173,7 @@ class VideoReferenceController extends Controller
         }
 
         // Загружаем связи для ответа
-        $videoReference->load(['category', 'tags', 'tutorials']);
+        $videoReference->load(['categories', 'tags', 'tutorials']);
         
         // Преобразуем tutorials, добавляя pivot данные на верхний уровень
         $videoReference->tutorials->transform(function ($tutorial) {
@@ -179,7 +194,7 @@ class VideoReferenceController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $videoReference = VideoReference::with(['category', 'tags', 'tutorials'])
+        $videoReference = VideoReference::with(['categories', 'tags', 'tutorials'])
             ->findOrFail($id);
         
         // Преобразуем tutorials, добавляя pivot данные на верхний уровень
@@ -232,6 +247,12 @@ class VideoReferenceController extends Controller
             }
         }
 
+        // Обрабатываем категории: получаем массив category_ids
+        $categoryIds = null;
+        if (isset($validated['category_ids']) && is_array($validated['category_ids'])) {
+            $categoryIds = array_filter($validated['category_ids'], fn($id) => is_numeric($id));
+        }
+
         // Обрабатываем теги: получаем или создаём теги по именам
         $tagIds = null;
         if (isset($validated['tags']) && is_array($validated['tags'])) {
@@ -254,11 +275,16 @@ class VideoReferenceController extends Controller
             }
         }
 
-        // Убираем tags из validated, так как будем привязывать по ID
-        unset($validated['tags']);
+        // Убираем tags и category_ids из validated, так как будем привязывать по ID
+        unset($validated['tags'], $validated['category_ids']);
 
         // Обновляем видео-референс
         $videoReference->update($validated);
+
+        // Обновляем категории если переданы
+        if ($categoryIds !== null) {
+            $videoReference->categories()->sync($categoryIds);
+        }
 
         // Обновляем теги если переданы
         if ($tagIds !== null) {
@@ -305,7 +331,7 @@ class VideoReferenceController extends Controller
         }
 
         // Загружаем связи для ответа
-        $videoReference->load(['category', 'tags', 'tutorials']);
+        $videoReference->load(['categories', 'tags', 'tutorials']);
         
         // Преобразуем tutorials, добавляя pivot данные на верхний уровень
         $videoReference->tutorials->transform(function ($tutorial) {

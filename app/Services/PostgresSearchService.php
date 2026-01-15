@@ -14,7 +14,7 @@ class PostgresSearchService
     public function search(?string $query = null, array $filters = [], int $perPage = 20, int $page = 1): LengthAwarePaginator
     {
         $builder = VideoReference::query()
-            ->with(['category', 'tags', 'tutorials']);
+            ->with(['categories', 'tags', 'tutorials']);
 
         // Применяем full-text search если есть запрос
         if ($query) {
@@ -60,12 +60,13 @@ class PostgresSearchService
             $query->where('source_url', $filters['source_url']);
         }
 
-        // Фильтр по категории (поддержка массива категорий)
-        if (!empty($filters['category_id'])) {
-            if (is_array($filters['category_id'])) {
-                $query->whereIn('category_id', $filters['category_id']);
-            } else {
-                $query->where('category_id', $filters['category_id']);
+        // Фильтр по категориям (category_ids) - логика OR (хотя бы одна из выбранных категорий)
+        if (!empty($filters['category_ids']) && is_array($filters['category_ids'])) {
+            $categoryIds = array_filter($filters['category_ids'], fn($id) => is_numeric($id));
+            if (!empty($categoryIds)) {
+                $query->whereHas('categories', function ($q) use ($categoryIds) {
+                    $q->whereIn('categories.id', $categoryIds);
+                });
             }
         }
 

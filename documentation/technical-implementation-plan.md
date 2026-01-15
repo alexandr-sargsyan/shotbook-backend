@@ -76,7 +76,7 @@ php artisan make:migration create_categories_table
 - `duration_sec` (integer, nullable) — длительность в секундах
 
 **Filter Fields:**
-- `category_id` (bigint, foreign key → categories.id)
+- Связь с категориями через pivot таблицу `video_reference_category` (many-to-many)
 - `platform` (string, nullable) — определяется автоматически по URL (instagram, tiktok, youtube)
 - `platform_video_id` (string, nullable) — ID видео на платформе после нормализации URL
 - `pacing` (string, nullable) — темп видео (slow, fast, mixed)

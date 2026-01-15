@@ -30,7 +30,7 @@
 - Мощная поисковая система с быстрым и точным поиском по названию, тегам, описанию и ключевой идее (search_profile)
 - Интеллектуальный поиск с учётом релевантности и контекста
 - Фильтрация по:
-  - Категории (category_id)
+  - Категориям (category_ids[]) — множественный выбор, логика OR (хотя бы одна из выбранных категорий)
   - Платформе (Instagram / TikTok / YouTube / Facebook) — множественный выбор через чекбоксы
   - Темпу (pacing: slow / fast / mixed)
   - Типу "хука" (hook_type) — способ привлечения внимания в начале видео (например, "question", "action", "visual", "emotional", "mystery", "sound")
@@ -47,7 +47,7 @@
 В карточке видео пользователь видит:
 - Заголовок (title)
 - Платформу (platform) с иконкой
-- Категорию (category) в виде бейджа
+- Категории (categories) в виде бейджей (может быть несколько)
 - Теги (tags)
 - Превью/плеер (preview_embed)
 - Длительность (duration_sec)
@@ -105,7 +105,7 @@
 **В листинге (карточка):**
 - `title` — короткий заголовок
 - `platform` — Instagram / TikTok / YouTube / Facebook (с иконкой)
-- `category_id` — категория (бейдж)
+- `categories[]` — массив категорий (бейджи)
 - `tags[]` — список тегов
 - `preview_embed` — превью/плеер (muted autoplay на hover)
 - `duration_sec` — длительность (отображается как 0:17)
@@ -126,7 +126,7 @@
 ### Filter Fields (по чему фильтруем)
 
 Эти поля используются для фильтрации через WHERE условия в PostgreSQL:
-- `category_id` (foreign key) — может быть массивом (множественный выбор)
+- `category_ids[]` (массив foreign keys через pivot таблицу `video_reference_category`) — множественный выбор (логика OR)
 - `platform` (string, nullable) — определяется автоматически по URL, может быть массивом (множественный выбор через чекбоксы)
 - `pacing` (string, nullable)
 - `hook_type` (string, nullable)

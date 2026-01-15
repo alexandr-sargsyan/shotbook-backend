@@ -35,7 +35,8 @@ class StoreVideoReferenceRequest extends FormRequest
             'duration_sec' => ['nullable', 'integer', 'min:1'],
 
             // Filter Fields
-            'category_id' => ['required', 'exists:categories,id'],
+            'category_ids' => ['required', 'array', 'min:1'],
+            'category_ids.*' => ['required', 'integer', 'exists:categories,id'],
             'platform' => ['nullable', 'string', Rule::in(PlatformEnum::values())],
             'pacing' => ['nullable', 'string', Rule::in(PacingEnum::values())],
             'hook_type' => ['nullable', 'string'],

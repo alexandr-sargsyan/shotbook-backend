@@ -20,7 +20,7 @@ class VideoCollectionItemController extends Controller
         $collection = VideoCollection::where('user_id', $user->id)->findOrFail($collectionId);
 
         $videos = $collection->videoReferences()
-            ->with(['category', 'tags'])
+            ->with(['categories', 'tags'])
             ->select('video_references.*')
             ->get();
 
