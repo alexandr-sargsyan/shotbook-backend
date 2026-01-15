@@ -31,7 +31,13 @@ class AdminCategoryController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', 'unique:categories,slug'],
+            'slug' => [
+                'required',
+                'string',
+                'max:255',
+                'unique:categories,slug',
+                'regex:/^[a-z0-9-]+$/',
+            ],
             'parent_id' => ['nullable', 'exists:categories,id'],
             'order' => ['nullable', 'integer'],
         ]);
@@ -75,7 +81,13 @@ class AdminCategoryController extends Controller
 
         $validated = $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
-            'slug' => ['sometimes', 'string', 'max:255', 'unique:categories,slug,' . $id],
+            'slug' => [
+                'sometimes',
+                'string',
+                'max:255',
+                'unique:categories,slug,' . $id,
+                'regex:/^[a-z0-9-]+$/',
+            ],
             'parent_id' => ['nullable', 'exists:categories,id'],
             'order' => ['sometimes', 'integer'],
         ]);
