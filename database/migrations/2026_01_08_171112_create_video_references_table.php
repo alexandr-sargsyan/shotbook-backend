@@ -25,7 +25,7 @@ return new class extends Migration
             // Filter Fields
             $table->string('platform')->nullable();
             $table->string('pacing')->nullable();
-            $table->string('hook_type')->nullable();
+            $table->foreignId('hook_id')->nullable()->constrained('hooks')->onDelete('set null');
             $table->string('production_level')->nullable();
             $table->boolean('has_visual_effects')->default(false);
             $table->boolean('has_3d')->default(false);

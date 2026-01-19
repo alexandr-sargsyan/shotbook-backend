@@ -23,7 +23,7 @@ class VideoReference extends Model
         'platform',
         'platform_video_id',
         'pacing',
-        'hook_type',
+        'hook_id',
         'production_level',
         'has_visual_effects',
         'has_3d',
@@ -45,6 +45,7 @@ class VideoReference extends Model
             'has_typography' => 'boolean',
             'has_sound_design' => 'boolean',
             'duration_sec' => 'integer',
+            'hook_id' => 'integer',
             'quality_score' => 'integer',
             'completeness_flags' => 'array',
             'details_public' => 'array',
@@ -70,6 +71,14 @@ class VideoReference extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class, 'video_reference_tag');
+    }
+
+    /**
+     * Получить хук
+     */
+    public function hook(): BelongsTo
+    {
+        return $this->belongsTo(Hook::class);
     }
 
     /**

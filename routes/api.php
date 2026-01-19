@@ -2,12 +2,14 @@
 
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminCategoryController;
+use App\Http\Controllers\Admin\AdminHookController;
 use App\Http\Controllers\Admin\AdminVideoReferenceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\HookController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TutorialController;
 use App\Http\Controllers\SharedCollectionController;
@@ -26,6 +28,7 @@ Route::post('/email-verification/verify-code', [EmailVerificationController::cla
 Route::apiResource('video-references', VideoReferenceController::class)->only(['index', 'show']);
 Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
 Route::get('tags', [TagController::class, 'index']);
+Route::get('hooks', [HookController::class, 'index']);
 Route::get('tutorials', [TutorialController::class, 'index']);
 
 // Публичные роуты для расшаренных коллекций
@@ -69,4 +72,7 @@ Route::prefix('admin')->middleware(['auth:api', 'admin'])->group(function () {
 
     // CRUD для categories (только для админов)
     Route::apiResource('categories', AdminCategoryController::class);
+
+    // Получение списка hooks (только для админов)
+    Route::get('hooks', [AdminHookController::class, 'index']);
 });

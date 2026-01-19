@@ -13,9 +13,12 @@ class CategoryController extends Controller
      */
     public function index(): JsonResponse
     {
-        $categories = Category::with('children')
+        $categories = Category::with(['children' => function($query) {
+                $query->orderBy('order', 'desc')->orderBy('name');
+            }])
             ->whereNull('parent_id')
-            ->orderBy('order')
+            ->orderBy('order', 'desc')
+            ->orderBy('name')
             ->get();
 
         return response()->json([
@@ -57,7 +60,9 @@ class CategoryController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $category = Category::with(['parent', 'children'])
+        $category = Category::with(['parent', 'children' => function($query) {
+                $query->orderBy('order', 'desc')->orderBy('name');
+            }])
             ->findOrFail($id);
 
         return response()->json([

@@ -168,7 +168,7 @@ class AdminVideoReferenceController extends Controller
         }
 
         // Загружаем связи для ответа
-        $videoReference->load(['categories', 'tags', 'tutorials']);
+        $videoReference->load(['categories', 'tags', 'tutorials', 'hook']);
         
         // Преобразуем tutorials, добавляя pivot данные на верхний уровень
         $videoReference->tutorials->transform(function ($tutorial) {
@@ -189,7 +189,7 @@ class AdminVideoReferenceController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $videoReference = VideoReference::with(['categories', 'tags', 'tutorials'])
+        $videoReference = VideoReference::with(['categories', 'tags', 'tutorials', 'hook'])
             ->findOrFail($id);
         
         // Преобразуем tutorials, добавляя pivot данные на верхний уровень
@@ -319,7 +319,7 @@ class AdminVideoReferenceController extends Controller
         }
 
         // Загружаем связи для ответа
-        $videoReference->load(['categories', 'tags', 'tutorials']);
+        $videoReference->load(['categories', 'tags', 'tutorials', 'hook']);
         
         // Преобразуем tutorials, добавляя pivot данные на верхний уровень
         $videoReference->tutorials->transform(function ($tutorial) {

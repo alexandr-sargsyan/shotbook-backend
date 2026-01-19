@@ -14,7 +14,7 @@ class PostgresSearchService
     public function search(?string $query = null, array $filters = [], int $perPage = 20, int $page = 1): LengthAwarePaginator
     {
         $builder = VideoReference::query()
-            ->with(['categories', 'tags', 'tutorials']);
+            ->with(['categories', 'tags', 'tutorials', 'hook']);
 
         // Применяем full-text search если есть запрос
         if ($query) {
@@ -87,9 +87,12 @@ class PostgresSearchService
             }
         }
 
-        // Фильтр по hook_type
-        if (!empty($filters['hook_type'])) {
-            $query->where('hook_type', $filters['hook_type']);
+        // Фильтр по hook_ids (массив ID хуков, логика OR - хотя бы один из выбранных)
+        if (!empty($filters['hook_ids']) && is_array($filters['hook_ids'])) {
+            $hookIds = array_filter($filters['hook_ids'], fn($id) => is_numeric($id));
+            if (!empty($hookIds)) {
+                $query->whereIn('hook_id', $hookIds);
+            }
         }
 
         // Фильтр по production_level (поддержка массива)

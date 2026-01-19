@@ -39,7 +39,7 @@ class StoreVideoReferenceRequest extends FormRequest
             'category_ids.*' => ['required', 'integer', 'exists:categories,id'],
             'platform' => ['nullable', 'string', Rule::in(PlatformEnum::values())],
             'pacing' => ['nullable', 'string', Rule::in(PacingEnum::values())],
-            'hook_type' => ['nullable', 'string'],
+            'hook_id' => ['nullable', 'integer', 'exists:hooks,id'],
             'production_level' => ['nullable', 'string', Rule::in(ProductionLevelEnum::values())],
             'has_visual_effects' => ['nullable', 'boolean'],
             'has_3d' => ['nullable', 'boolean'],
