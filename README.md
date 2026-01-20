@@ -67,6 +67,26 @@ CREATE DATABASE project_x;
 php artisan migrate
 ```
 
+### 6.5. Настройка Laravel Passport
+
+После выполнения миграций необходимо настроить Laravel Passport для работы аутентификации:
+
+```bash
+php artisan passport:keys
+```
+
+Эта команда сгенерирует ключи шифрования (`oauth-private.key` и `oauth-public.key` в папке `storage/`).
+
+**Примечание:** Если ключи уже существуют, команда выдаст ошибку. В этом случае можно пропустить этот шаг.
+
+Затем создайте OAuth клиента для работы API:
+
+```bash
+php artisan passport:client --personal
+```
+
+Эта команда создаст Personal Access Client, необходимый для работы аутентификации через API.
+
 ### 7. Заполнение базы данных тестовыми данными (опционально)
 
 ```bash
