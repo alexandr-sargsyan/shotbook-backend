@@ -47,6 +47,7 @@ class UpdateVideoReferenceRequest extends FormRequest
             'has_animations' => ['nullable', 'boolean'],
             'has_typography' => ['nullable', 'boolean'],
             'has_sound_design' => ['nullable', 'boolean'],
+            'has_ai' => ['nullable', 'boolean'],
 
             // Rating
             'rating' => ['nullable', 'integer', 'min:0', 'max:10'],

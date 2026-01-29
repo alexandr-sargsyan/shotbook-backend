@@ -31,6 +31,7 @@ class VideoReference extends Model
         'has_animations',
         'has_typography',
         'has_sound_design',
+        'has_ai',
         'search_profile',
         // Денормализованные поля для поиска (обновляются триггерами)
         // 'search_tags',        // Обновляется триггером при изменении тегов
@@ -58,6 +59,7 @@ class VideoReference extends Model
             'has_animations' => 'boolean',
             'has_typography' => 'boolean',
             'has_sound_design' => 'boolean',
+            'has_ai' => 'boolean',
             'duration_sec' => 'integer',
             'hook_id' => 'integer',
             'quality_score' => 'integer',

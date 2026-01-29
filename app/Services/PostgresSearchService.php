@@ -181,6 +181,7 @@ class PostgresSearchService
             'has_animations',
             'has_typography',
             'has_sound_design',
+            'has_ai',
         ];
 
         foreach ($hasFlags as $flag) {

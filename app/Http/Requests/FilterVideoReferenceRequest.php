@@ -19,6 +19,39 @@ class FilterVideoReferenceRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     * Преобразует строки "true"/"false" в булевы значения для boolean полей
+     */
+    protected function prepareForValidation(): void
+    {
+        $booleanFields = [
+            'has_visual_effects',
+            'has_3d',
+            'has_animations',
+            'has_typography',
+            'has_sound_design',
+            'has_ai',
+            'has_tutorial',
+        ];
+
+        foreach ($booleanFields as $field) {
+            if ($this->has($field)) {
+                $value = $this->input($field);
+                
+                // Преобразуем строки "true"/"false" в булевы значения
+                if (is_string($value)) {
+                    $value = strtolower($value);
+                    if ($value === 'true' || $value === '1') {
+                        $this->merge([$field => true]);
+                    } elseif ($value === 'false' || $value === '0' || $value === '') {
+                        $this->merge([$field => false]);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
@@ -44,6 +77,7 @@ class FilterVideoReferenceRequest extends FormRequest
             'has_animations' => ['nullable', 'boolean'],
             'has_typography' => ['nullable', 'boolean'],
             'has_sound_design' => ['nullable', 'boolean'],
+            'has_ai' => ['nullable', 'boolean'],
             'has_tutorial' => ['nullable', 'boolean'],
             'tag_ids' => ['nullable', 'array'],
             'tag_ids.*' => ['integer', 'exists:tags,id'],
