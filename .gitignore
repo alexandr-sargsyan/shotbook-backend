@@ -44,3 +44,31 @@ Thumbs.db
 
 # Test HTML files
 test*.html
+
+# Laravel Passport keys (explicit)
+/storage/oauth-private.key
+/storage/oauth-public.key
+
+# Laravel IDE Helper
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
+
+# Laravel Sail
+/.docker
+
+# Composer
+composer.phar
+
+# PHP editor files
+*.swp
+*.swo
+*~
+
+# OS files
+.AppleDouble
+.LSOverride
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.directory
