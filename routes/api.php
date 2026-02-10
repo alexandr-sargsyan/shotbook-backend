@@ -77,6 +77,9 @@ Route::prefix('admin')->middleware(['auth:api', 'admin'])->group(function () {
     // CRUD для categories (только для админов)
     Route::apiResource('categories', AdminCategoryController::class)
         ->names('admin.categories');
+    
+    // Перенос видео из категории в другую
+    Route::post('categories/{id}/transfer-videos', [AdminCategoryController::class, 'transferVideos']);
 
     // Получение списка hooks (только для админов)
     Route::get('hooks', [AdminHookController::class, 'index']);

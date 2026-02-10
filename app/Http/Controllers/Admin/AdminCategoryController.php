@@ -128,6 +128,58 @@ class AdminCategoryController extends Controller
     }
 
     /**
+     * Transfer all videos from one category to another.
+     */
+    public function transferVideos(Request $request, string $id): JsonResponse
+    {
+        $category = Category::findOrFail($id);
+
+        $validated = $request->validate([
+            'target_category_id' => ['required', 'exists:categories,id'],
+        ]);
+
+        $targetCategoryId = $validated['target_category_id'];
+
+        // Проверяем, что целевая категория не совпадает с текущей
+        if ((int)$targetCategoryId === (int)$id) {
+            return response()->json([
+                'message' => 'Target category cannot be the same as source category',
+            ], 422);
+        }
+
+        $targetCategory = Category::findOrFail($targetCategoryId);
+
+        // Получаем все видео, связанные с текущей категорией
+        $videoReferences = $category->videoReferences()->get();
+        $transferredCount = 0;
+        $skippedCount = 0;
+
+        foreach ($videoReferences as $video) {
+            // Удаляем связь с текущей категорией
+            $category->videoReferences()->detach($video->id);
+
+            // Проверяем, есть ли уже связь с целевой категорией
+            if (!$video->categories()->where('categories.id', $targetCategoryId)->exists()) {
+                // Добавляем связь с целевой категорией
+                $targetCategory->videoReferences()->attach($video->id);
+                $transferredCount++;
+            } else {
+                // Пропускаем, если связь уже существует
+                $skippedCount++;
+            }
+        }
+
+        return response()->json([
+            'message' => 'Videos transferred successfully',
+            'data' => [
+                'transferred_count' => $transferredCount,
+                'skipped_count' => $skippedCount,
+                'total_count' => $videoReferences->count(),
+            ],
+        ]);
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id): JsonResponse
