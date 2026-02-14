@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PlatformEnum;
+use App\Enums\SubscriptionEnum;
 use App\Http\Requests\FilterVideoReferenceRequest;
 use App\Http\Requests\StoreVideoReferenceRequest;
 use App\Http\Requests\UpdateVideoReferenceRequest;
@@ -28,6 +29,46 @@ class VideoReferenceController extends Controller
      */
     public function index(FilterVideoReferenceRequest $request): JsonResponse
     {
+        $user = auth('api')->user();
+        $hasActiveSubscription = $user && $user->hasActiveSubscription();
+
+        // Если пользователь не зарегистрирован или не имеет активной подписки
+        if (!$hasActiveSubscription) {
+            // Получаем топ-16 видео по рейтингу (игнорируем все фильтры и поиск)
+            $freeLimit = SubscriptionEnum::freeVideoLimit();
+            $topVideos = VideoReference::query()
+                ->with(['categories', 'tags', 'transitionTypes', 'tutorials', 'hook'])
+                ->orderBy('rating', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->limit($freeLimit)
+                ->get();
+
+            // Получаем ID разрешенных видео
+            $allowedVideoIds = $topVideos->pluck('id')->toArray();
+
+            // Добавляем информацию о лайках
+            $items = $topVideos->map(function ($videoReference) use ($user) {
+                $videoReference->likes_count = $videoReference->likes()->count();
+                $videoReference->is_liked = $user ? $videoReference->likes()
+                    ->where('user_id', $user->id)
+                    ->exists() : false;
+                return $videoReference;
+            });
+
+            return response()->json([
+                'data' => $items->values()->all(),
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => $freeLimit,
+                    'total' => $freeLimit,
+                ],
+                'subscription_required' => true,
+                'allowed_video_ids' => $allowedVideoIds,
+            ]);
+        }
+
+        // Полный доступ для пользователей с активной подпиской
         $validated = $request->validated();
 
         $search = $validated['search'] ?? null;
@@ -42,7 +83,6 @@ class VideoReferenceController extends Controller
         $results = $this->searchService->search($search, $filters, $perPage, $page);
 
         // Добавляем информацию о лайках
-        $user = auth('api')->user();
         $items = collect($results->items())->map(function ($videoReference) use ($user) {
             $videoReference->likes_count = $videoReference->likes()->count();
             $videoReference->is_liked = $user ? $videoReference->likes()
@@ -67,6 +107,7 @@ class VideoReferenceController extends Controller
                 'per_page' => $results->perPage(),
                 'total' => $results->total(),
             ],
+            'subscription_required' => false,
         ]);
     }
 
@@ -247,6 +288,29 @@ class VideoReferenceController extends Controller
      */
     public function show(string $id): JsonResponse
     {
+        $user = auth('api')->user();
+        $hasActiveSubscription = $user && $user->hasActiveSubscription();
+
+        // Если пользователь не зарегистрирован или не имеет активной подписки
+        if (!$hasActiveSubscription) {
+            // Получаем топ-16 ID видео по рейтингу
+            $freeLimit = SubscriptionEnum::freeVideoLimit();
+            $allowedVideoIds = VideoReference::query()
+                ->orderBy('rating', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->limit($freeLimit)
+                ->pluck('id')
+                ->toArray();
+
+            // Проверяем, есть ли запрошенное видео в списке разрешенных
+            if (!in_array((int)$id, $allowedVideoIds)) {
+                return response()->json([
+                    'message' => 'Subscription required to access this video',
+                    'subscription_required' => true,
+                ], 403);
+            }
+        }
+
         $videoReference = VideoReference::with(['categories', 'tags', 'transitionTypes', 'tutorials', 'hook'])
             ->findOrFail($id);
         
@@ -260,7 +324,6 @@ class VideoReferenceController extends Controller
         });
 
         // Добавляем информацию о лайках
-        $user = auth('api')->user();
         $videoReference->likes_count = $videoReference->likes()->count();
         $videoReference->is_liked = $user ? $videoReference->likes()
             ->where('user_id', $user->id)

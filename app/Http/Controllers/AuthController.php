@@ -109,12 +109,29 @@ class AuthController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
+        $user = $request->user();
+        $activeSubscription = $user->activeSubscription;
+
+        $subscriptionData = null;
+        if ($activeSubscription) {
+            $subscriptionData = [
+                'plan' => [
+                    'id' => $activeSubscription->subscriptionPlan->id,
+                    'name' => $activeSubscription->subscriptionPlan->name,
+                    'slug' => $activeSubscription->subscriptionPlan->slug,
+                ],
+                'expires_at' => $activeSubscription->expires_at->toIso8601String(),
+            ];
+        }
+
         return response()->json([
             'user' => [
-                'id' => $request->user()->id,
-                'name' => $request->user()->name,
-                'email' => $request->user()->email,
-                'email_verified_at' => $request->user()->email_verified_at,
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'email_verified_at' => $user->email_verified_at,
+                'has_subscription' => $user->hasActiveSubscription(),
+                'subscription' => $subscriptionData,
             ],
         ]);
     }

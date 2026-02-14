@@ -3,9 +3,12 @@
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminHookController;
+use App\Http\Controllers\Admin\AdminRoleController;
+use App\Http\Controllers\Admin\AdminSubscriptionController;
 use App\Http\Controllers\Admin\AdminTransitionTypeController;
 use App\Http\Controllers\Admin\AdminTutorialController;
 use App\Http\Controllers\Admin\AdminTagController;
+use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminVideoReferenceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
@@ -17,6 +20,7 @@ use App\Http\Controllers\TagController;
 use App\Http\Controllers\TransitionTypeController;
 use App\Http\Controllers\TutorialController;
 use App\Http\Controllers\SharedCollectionController;
+use App\Http\Controllers\SubscriptionPlanController;
 use App\Http\Controllers\VideoCollectionController;
 use App\Http\Controllers\VideoCollectionItemController;
 use App\Http\Controllers\VideoReferenceController;
@@ -35,6 +39,7 @@ Route::get('tags', [TagController::class, 'index']);
 Route::get('transition-types', [TransitionTypeController::class, 'index']);
 Route::get('hooks', [HookController::class, 'index']);
 Route::get('tutorials', [TutorialController::class, 'index']);
+Route::get('subscription-plans', [SubscriptionPlanController::class, 'index']);
 
 // Публичные роуты для расшаренных коллекций
 Route::get('shared/collections/{token}/videos', [SharedCollectionController::class, 'getVideos']);
@@ -86,6 +91,9 @@ Route::prefix('admin')->middleware(['auth:api', 'admin'])->group(function () {
     // Получение списка hooks (только для админов)
     Route::get('hooks', [AdminHookController::class, 'index']);
 
+    // Получение списка roles (только для админов)
+    Route::get('roles', [AdminRoleController::class, 'index']);
+
     // CRUD для transition types (только для админов)
     Route::apiResource('transition-types', AdminTransitionTypeController::class)
         ->names('admin.transition-types');
@@ -106,4 +114,13 @@ Route::prefix('admin')->middleware(['auth:api', 'admin'])->group(function () {
     
     // Перенос видео из тега в другой
     Route::post('tags/{id}/transfer-videos', [AdminTagController::class, 'transferVideos']);
+
+    // CRUD для users (только для админов)
+    Route::apiResource('users', AdminUserController::class)
+        ->names('admin.users');
+
+    // Управление подписками пользователей
+    Route::post('users/{id}/activate-subscription', [AdminSubscriptionController::class, 'activate']);
+    Route::post('users/{id}/deactivate-subscription', [AdminSubscriptionController::class, 'deactivate']);
+    Route::get('users/{id}/subscription-history', [AdminSubscriptionController::class, 'history']);
 });
